@@ -16,11 +16,11 @@ class Scraper(threading.Thread):
         self.delay = delay
 
         # Initial fetch
-        lines = self.fetch_page_lines()
-        for line in lines:
-            tx = self.parse_line(line)
-            if tx is not None and line not in self.txs:
-                self.txs.append(line)
+        # lines = self.fetch_page_lines()
+        # for line in lines:
+        #     tx = self.parse_line(line)
+        #     if tx is not None and line not in self.txs:
+        #         self.txs.append(line)
 
     def fetch_page_lines(self):
         html = requests.get(self.url).text
@@ -28,13 +28,15 @@ class Scraper(threading.Thread):
         return text.split('\n')
     
     def parse_line(self, line):
-        if 'repay' not in line and 'Repay' not in line:
+        # TODO better parsing
+        if line == '':
             return None
         
-        tx_date, tx_time, id, _, _, _, _, _, amount, currency = line.split()[:10]
+        tx_date, tx_time, id, _, _, _, _, type, amount, currency = line.split()[:10]
         parsed = {
             'date': tx_date + ' ' + tx_time,
             'id': int(id[1:-1]),
+            'type': type[:-2],
             'amount': float(amount),
             'currency': currency,
         }
@@ -48,11 +50,11 @@ class Scraper(threading.Thread):
                 if tx is not None and line not in self.txs:
                     self.txs.append(line)
                     if tx['currency'] == 'USD Coin' or 'USDC' in tx['currency']:
-                        logging.critical(f"NEW REPAY: {tx['amount']} {tx['currency']} on {tx['date']}")
+                        logging.critical(f"NEW {tx['type']}: {tx['amount']} {tx['currency']} on {tx['date']}")
                     else:
-                        logging.info(f"new repay: {tx['amount']} {tx['currency']} on {tx['date']}")
+                        logging.info(f"new {tx['type']}: {tx['amount']} {tx['currency']} on {tx['date']}")
             except:
-                logging.error('Could not parse: {line}')
+                logging.debug(f'Could not parse: {line}')
 
     def run(self):
         while not self.killsig:
