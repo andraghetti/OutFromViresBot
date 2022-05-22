@@ -8,10 +8,23 @@ from scraper import Scraper
 
 LOADING_CHARS = "/—\|" 
 
-LP_REPAY_URL = 'https://w8.io/txs/g/73309'
-REPAY_URL = 'https://w8.io/txs/g/67801'
-DEPOSIT_URL = 'https://w8.io/txs/g/64828'
-
+TX_TYPES = [
+    {
+        'name': '🔄 LP Repay',
+        'url': 'https://w8.io/txs/g/73309',
+        'threshold': 0
+    },
+    {
+        'name': '⬆️ Repay',
+        'url': 'https://w8.io/txs/g/67801',
+        'threshold': 100
+    },
+    {
+        'name': '⬇️ Deposit',
+        'url': 'https://w8.io/txs/g/64828',
+        'threshold': 100
+    },
+]
 
 def threads_alive(threads):
     return True in [t.is_alive() for t in threads]
@@ -23,9 +36,8 @@ def main():
     )
 
     threads = [
-        Scraper('LP Repay', LP_REPAY_URL, amount_threashold=0),
-        Scraper('Repay', REPAY_URL),
-        Scraper('Deposit', DEPOSIT_URL),
+        Scraper(name=tx_t['name'], url=tx_t['url'], amount_threshold=tx_t['threshold'])
+        for tx_t in TX_TYPES
     ]
     
     for thread in threads:

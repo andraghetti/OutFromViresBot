@@ -17,7 +17,7 @@ REQUIREMENTS = [
 setup(
     name='out_from_vires_bot',
     packages=find_namespace_packages(),
-    version='0.0.2',
+    version='0.1.0',
     author='Lorenzo Andraghetti',
     author_email='andraghetti.l@gmail.com',
     maintainer_email='andraghetti.l@gmail.com',

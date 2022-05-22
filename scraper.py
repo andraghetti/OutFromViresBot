@@ -1,4 +1,3 @@
-
 import logging
 import threading
 import time
@@ -9,14 +8,14 @@ from bs4 import BeautifulSoup
 import notify
 
 class Scraper(threading.Thread):
-    def __init__(self, name, url, delay=15, amount_threashold=1000):
+    def __init__(self, name, url, delay=15, amount_threshold=100):
         threading.Thread.__init__(self)
         self.name = name
         self.url = url
         self.txs = []
         self.killsig = False
         self.delay = delay
-        self.amount_threashold = amount_threashold
+        self.amount_threshold = amount_threshold
 
         # Initial fetch
         lines = self.fetch_page_lines()
@@ -39,6 +38,11 @@ class Scraper(threading.Thread):
         if len(splitted) > 10:
             if splitted[10] != 'invoke':
                 currency = f'{currency} {splitted[10]}'
+        
+        # TODO convert all the currencies to short name
+        currency = 'USDC' if currency == 'USD Coin' else currency
+        currency = 'VIRESUSDCLP' if currency == 'VIRES_USDC_LP' else currency
+
         parsed = {
             'date': tx_date + ' ' + tx_time,
             'id': int(id[1:-1]),
@@ -55,15 +59,9 @@ class Scraper(threading.Thread):
                 tx = self.parse_line(line)
                 if tx is not None and line not in self.txs:
                     self.txs.append(line)
-                    if (tx['currency'] == 'USD Coin' or 'USDC' in tx['currency']) \
-                        and tx['amount'] > self.amount_threashold:
-                        logging.critical(f"NEW {tx['type'].upper()}: {tx['amount']} USDC on {tx['date']}")
-                        notify.send(self.name, tx)
-                    else:
-                        logging.info(f"new {tx['type']}: {tx['amount']} {tx['currency']} on {tx['date']}")
-                        notify.send(self.name, tx, silent=True)
-            except:
-                logging.debug(f'Could not parse: {line}')
+                    notify.send(self, tx)
+            except Exception as error:
+                logging.critical(f'Could not parse: {line}: {error}')
 
     def run(self):
         while not self.killsig:
@@ -76,6 +74,6 @@ class Scraper(threading.Thread):
     
     def cancel(self):
         logging.debug(f'Shutting: {self.name}')
-        notify.send(self.name, tx=None)
+        notify.send(self, tx=None)
         self.shut()
         self.close()
