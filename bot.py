@@ -1,5 +1,6 @@
 
-import logging, sys, time
+import logging
+import time
 
 import coloredlogs
 
@@ -22,9 +23,9 @@ def main():
     )
 
     threads = [
-        Scraper(LP_REPAY_URL),
-        Scraper(REPAY_URL),
-        Scraper(DEPOSIT_URL),
+        Scraper('LP Repay', LP_REPAY_URL, amount_threashold=0),
+        Scraper('Repay', REPAY_URL),
+        Scraper('Deposit', DEPOSIT_URL),
     ]
     
     for thread in threads:
